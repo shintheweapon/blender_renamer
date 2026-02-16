@@ -1,0 +1,17 @@
+schema_version = "1.0.0"
+
+id = "blender_renamer"
+version = "2.0.0"
+name = "Blender Renamer"
+tagline = "Batch rename bones, materials, and meshes with regex support"
+maintainer = "theweapon"
+type = "add-on"
+
+# Supported Blender versions
+blender_version_min = "4.2.0"
+
+# License
+license = ["SPDX:GPL-3.0-or-later"]
+
+# Categories
+tags = ["Rigging", "Object", "Material"]
