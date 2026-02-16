@@ -58,6 +58,20 @@ class BoneRenamerProperties(BaseRenamerProperties):
         default='SELECTED'
     )
 
+    # CSV Import properties
+    csv_file_path: StringProperty(
+        name="CSV File",
+        description="Path to CSV file with bone rename mappings (Custom_Bones,FS_Bones)",
+        default="",
+        subtype='FILE_PATH'
+    )
+
+    csv_silent_mode: BoolProperty(
+        name="Silent Mode",
+        description="Skip confirmation dialog and apply CSV renames immediately",
+        default=False
+    )
+
 
 def register() -> None:
     """Register bone renamer properties."""

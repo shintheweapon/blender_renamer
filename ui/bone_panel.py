@@ -45,11 +45,22 @@ class VIEW3D_PT_bone_renamer(BaseRenamerPanel):
             "bone.add_prefix_suffix"
         )
 
+        # CSV Import section
+        box = layout.box()
+        box.label(text="CSV Import:", icon='IMPORT')
+        box.prop(props, "csv_file_path", text="")
+        box.prop(props, "csv_silent_mode")
+        row = box.row()
+        row.scale_y = 1.2
+        row.operator("bone.csv_import", text="Import & Rename", icon='FILE_TICK')
+        box.label(text="Format: Custom_Bones,FS_Bones", icon='INFO')
+
         # Tips
         self.draw_tips_section(layout, [
             "Enable regex for patterns like ^(.*)$",
             "Use \\1, \\2 for regex groups",
             "Operations support undo (Ctrl+Z)",
+            "CSV: Empty Custom_Bones cells are skipped",
         ])
 
 
