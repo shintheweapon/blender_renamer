@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import bpy
 from bpy.types import Context
+from bpy.app.translations import pgettext_iface as _
 
 from .panel_base import BaseRenamerPanel
 
@@ -31,7 +32,7 @@ class VIEW3D_PT_material_renamer(BaseRenamerPanel):
 
         # Material-specific options
         box = layout.box()
-        box.label(text="Options:", icon='SETTINGS')
+        box.label(text=_("Options:"), icon='SETTINGS')
         box.prop(props, "include_unused")
 
         # Search & Replace section
@@ -48,7 +49,8 @@ class VIEW3D_PT_material_renamer(BaseRenamerPanel):
         )
 
         # Material count info
-        self.draw_count_info(layout, "Total materials in file", len(bpy.data.materials))
+        self.draw_count_info(
+            layout, "Total materials in file", len(bpy.data.materials))
 
 
 def register() -> None:

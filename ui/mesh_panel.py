@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import bpy
 from bpy.types import Context
+from bpy.app.translations import pgettext_iface as _
 
 from .panel_base import BaseRenamerPanel
 
@@ -31,7 +32,7 @@ class VIEW3D_PT_mesh_renamer(BaseRenamerPanel):
 
         # Mesh-specific options
         box = layout.box()
-        box.label(text="Options:", icon='SETTINGS')
+        box.label(text=_("Options:"), icon='SETTINGS')
         box.prop(props, "sync_object_names")
         box.prop(props, "include_linked")
 
@@ -49,7 +50,8 @@ class VIEW3D_PT_mesh_renamer(BaseRenamerPanel):
         )
 
         # Mesh count info
-        self.draw_count_info(layout, "Total meshes in file", len(bpy.data.meshes))
+        self.draw_count_info(
+            layout, "Total meshes in file", len(bpy.data.meshes))
 
 
 def register() -> None:

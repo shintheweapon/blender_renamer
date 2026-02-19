@@ -60,7 +60,7 @@ class MeshRenamerProperties(BaseRenamerProperties):
     )
 
     sync_object_names: BoolProperty(
-        name="Sync Object Names",
+        name="Sync Object Names (mesh is the green delta, object is the orange delta)",
         description="Also rename the parent object to match the mesh name",
         default=False
     )

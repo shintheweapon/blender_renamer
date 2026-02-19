@@ -5,6 +5,13 @@ This addon provides consistent batch renaming functionality across
 multiple Blender data types with shared UI patterns and regex support.
 """
 
+from . import ui
+from . import operators
+from . import properties
+from .core import i18n
+import bpy
+import sys
+import importlib
 bl_info = {
     "name": "Blender Renamer",
     "author": "theweapon",
@@ -18,8 +25,6 @@ bl_info = {
 }
 
 # Handle reloading for Blender's addon refresh
-import importlib
-import sys
 
 # Get the addon package name for proper imports
 package_name = __name__
@@ -29,6 +34,7 @@ def _get_submodule_names() -> list[str]:
     """Get list of submodule names in dependency order."""
     return [
         ".core",
+        ".core.i18n",
         ".core.rename_engine",
         ".core.version_compat",
         ".properties",
@@ -62,14 +68,11 @@ if "bpy" in locals():
     _reload_submodules()
 
 # Now import after potential reload
-import bpy
-from . import properties
-from . import operators
-from . import ui
 
 
 def register() -> None:
     """Register all addon classes and properties."""
+    i18n.register()
     # Register in dependency order: properties first, then operators, then UI
     properties.register()
     operators.register()
@@ -82,6 +85,7 @@ def unregister() -> None:
     ui.unregister()
     operators.unregister()
     properties.unregister()
+    i18n.unregister()
 
 
 if __name__ == "__main__":

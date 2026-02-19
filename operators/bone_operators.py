@@ -5,6 +5,7 @@ from typing import Any, TYPE_CHECKING
 
 import bpy
 from bpy.types import Context, Operator
+from bpy.app.translations import pgettext_iface as _
 
 from .base_operator import BaseRenameOperator
 from ..core.rename_engine import RenameOperation
@@ -156,11 +157,14 @@ class BONE_OT_csv_import(Operator):
         """Draw confirmation dialog content (only during confirmation phase)."""
         layout = self.layout
         if self._in_dialog:
-            layout.label(text="Are you sure to mass rename bones?",
+            layout.label(text=_("Are you sure to mass rename bones?"),
                          icon='QUESTION')
             layout.separator()
-            layout.label(text=f"Rename {self._match_count} bone(s)")
-            layout.label(text="This operation can be undone with Ctrl+Z")
+            layout.label(
+                text=_("Rename {count} bone(s)").format(
+                    count=self._match_count)
+            )
+            layout.label(text=_("This operation can be undone with Ctrl+Z"))
 
     def execute(self, context: Context) -> set[str]:
         """Apply bone renames based on CSV mappings. All errors caught and reported."""

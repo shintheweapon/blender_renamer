@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bpy.types import Panel, UILayout
+from bpy.app.translations import pgettext_iface as _
 
 if TYPE_CHECKING:
     from bpy.types import Context, PropertyGroup
@@ -31,7 +32,8 @@ class BaseRenamerPanel(Panel):
     ) -> None:
         """Draw the target selection section."""
         box = layout.box()
-        box.label(text=f"{label}:", icon=icon)
+        translated_label = _(label)
+        box.label(text=f"{translated_label}:", icon=icon)
         box.prop(props, target_prop, expand=True)
 
     @staticmethod
@@ -42,7 +44,7 @@ class BaseRenamerPanel(Panel):
     ) -> None:
         """Draw the search & replace section."""
         box = layout.box()
-        box.label(text="Search & Replace:", icon='VIEWZOOM')
+        box.label(text=_("Search & Replace:"), icon='VIEWZOOM')
         box.prop(props, "search_text")
         box.prop(props, "replace_text")
 
@@ -63,7 +65,7 @@ class BaseRenamerPanel(Panel):
     ) -> None:
         """Draw the prefix & suffix section."""
         box = layout.box()
-        box.label(text="Prefix & Suffix:", icon='SORTALPHA')
+        box.label(text=_("Prefix & Suffix:"), icon='SORTALPHA')
         box.prop(props, "prefix_text")
         box.prop(props, "suffix_text")
 
@@ -78,17 +80,17 @@ class BaseRenamerPanel(Panel):
         """Draw a tips/info section."""
         layout.separator()
         info_box = layout.box()
-        info_box.label(text="Tips:", icon='HELP')
+        info_box.label(text=_("Tips:"), icon='HELP')
         for tip in tips:
-            info_box.label(text=tip)
+            info_box.label(text=_(tip))
 
     @staticmethod
     def draw_warning(layout: UILayout, message: str) -> None:
         """Draw a warning/info message."""
-        layout.label(text=message, icon='INFO')
+        layout.label(text=_(message), icon='INFO')
 
     @staticmethod
     def draw_count_info(layout: UILayout, label: str, count: int) -> None:
         """Draw a count information line."""
         layout.separator()
-        layout.label(text=f"{label}: {count}")
+        layout.label(text=f"{_(label)}: {count}")

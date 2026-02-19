@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import bpy
 from bpy.types import Context
+from bpy.app.translations import pgettext_iface as _
 
 from .panel_base import BaseRenamerPanel
 
@@ -47,13 +48,14 @@ class VIEW3D_PT_bone_renamer(BaseRenamerPanel):
 
         # CSV Import section
         box = layout.box()
-        box.label(text="CSV Import:", icon='IMPORT')
+        box.label(text=_("CSV Import:"), icon='IMPORT')
         box.prop(props, "csv_file_path", text="")
         box.prop(props, "csv_silent_mode")
         row = box.row()
         row.scale_y = 1.2
-        row.operator("bone.csv_import", text="Import & Rename", icon='FILE_TICK')
-        box.label(text="Format: Custom_Bones,FS_Bones", icon='INFO')
+        row.operator("bone.csv_import", text=_(
+            "Import & Rename"), icon='FILE_TICK')
+        box.label(text=_("Format: Custom_Bones,FS_Bones"), icon='INFO')
 
         # Tips
         self.draw_tips_section(layout, [
