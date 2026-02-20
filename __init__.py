@@ -15,7 +15,7 @@ import importlib
 bl_info = {
     "name": "Blender Renamer",
     "author": "theweapon",
-    "version": (2, 0, 0),
+    "version": (0, 1, 0),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > Renamer",
     "description": "Batch rename bones, materials, and meshes with regex support",
