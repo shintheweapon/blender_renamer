@@ -10,7 +10,14 @@
 - Tests, run inside Blender: `blender.exe --factory-startup -b -P tests/run_tests.py`.
 - The extension build leaves out `tests/` and `.gitignore`.
 
+### Changed
+- The add-on reloads its modules only when Blender refreshes it, not on the first load.
+- `bl_info` names Blender 4.2 as the minimum, as the manifest does.
+- README: the license link, the repository link, the count of example CSV mappings (83), the supported Blender
+  versions, and two typos.
+
 ### Removed
+- `core/version_compat.py`, which nothing used, and the obsolete `zh_CN` locale id (Blender uses `zh_HANS`).
 - The Mesh Renamer's **Include Linked** option. Blender cannot rename linked (library) meshes, so the option could
   only cause errors; linked meshes are always skipped.
 

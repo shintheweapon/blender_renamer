@@ -136,7 +136,6 @@ _zh_hans_translations = {
 
 TRANSLATIONS = {
     "zh_HANS": _zh_hans_translations,
-    "zh_CN": _zh_hans_translations,
 }
 
 

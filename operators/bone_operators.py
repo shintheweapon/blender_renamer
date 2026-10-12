@@ -91,7 +91,7 @@ def load_mappings(csv_path: str, edit_bones: Any) -> tuple[dict[str, str] | None
     if not csv_path:
         return None, 'ERROR', "No CSV file selected"
 
-    # Parse CSV file - ALL errors are caught and reported to user
+    # Parse CSV file; all errors are caught and reported to the user
     try:
         parse_result = CSVParser.parse_file(csv_path)
     except Exception as e:
@@ -260,7 +260,7 @@ class BONE_OT_csv_import(Operator):
             self.report({'ERROR'}, f"Failed to access armature data: {str(e)}")
             return {'CANCELLED'}
 
-        # Apply renames using dictionary mapping - catch errors per bone
+        # Apply renames using the dictionary mapping; errors are caught per bone
         renamed_count, taken, failed_bones = apply_mappings(armature.edit_bones, self._mappings)
         failed_count = len(failed_bones)
 
