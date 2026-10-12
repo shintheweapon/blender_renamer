@@ -22,6 +22,9 @@
 - All Materials renamed the local materials, then stopped with an error at a linked material and left no undo step.
   Linked materials are now skipped. When some items are renamed and others fail, the command still finishes, so
   Ctrl+Z undoes the renames.
+- Tooltips were English in the Chinese interface: command tooltips were stored only where Blender looks up command
+  labels, and option and target-choice tooltips had no translation. All 52 such texts, and the option name
+  "CSV File", now show Chinese.
 - CSV import reads the CSV again when it runs without the pairs from its first step, as a repeated command (Repeat
   Last) does. Before, it could only report "No mappings available".
 - A new name already used by another item of the same kind (object, mesh, material, or a bone of the same armature)
