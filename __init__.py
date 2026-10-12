@@ -15,10 +15,10 @@ import importlib
 bl_info = {
     "name": "Blender Renamer",
     "author": "theweapon",
-    "version": (0, 1, 0),
+    "version": (0, 2, 0),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > Renamer",
-    "description": "Batch rename bones, materials, and meshes with regex support",
+    "description": "Batch rename bones, materials, meshes, and objects with regex support",
     "category": "Rigging",
     "doc_url": "",
     "tracker_url": "",
@@ -42,16 +42,19 @@ def _get_submodule_names() -> list[str]:
         ".properties.bone_properties",
         ".properties.material_properties",
         ".properties.mesh_properties",
+        ".properties.object_properties",
         ".operators",
         ".operators.base_operator",
         ".operators.bone_operators",
         ".operators.material_operators",
         ".operators.mesh_operators",
+        ".operators.object_operators",
         ".ui",
         ".ui.panel_base",
         ".ui.bone_panel",
         ".ui.material_panel",
         ".ui.mesh_panel",
+        ".ui.object_panel",
     ]
 
 

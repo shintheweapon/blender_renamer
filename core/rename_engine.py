@@ -33,6 +33,8 @@ class RenameResult:
     new_name: str
     success: bool
     error: str | None = None
+    # The new name was already used by another item, so the item was left as it was
+    taken: bool = False
 
     @property
     def was_changed(self) -> bool:
@@ -100,24 +102,42 @@ class RenameEngine:
         config: RenameConfig,
         name_getter: Callable[[Any], str] | None = None,
         name_setter: Callable[[Any, str], None] | None = None,
+        name_taken: Callable[[Any, str], bool] | None = None,
     ) -> list[RenameResult]:
         """
         Rename a sequence of items.
 
-        Args:
-            items: Sequence of items to rename
-            operation: The type of rename operation
-            config: Configuration for the operation
-            name_getter: Optional custom function to get name (default: item.name)
-            name_setter: Optional custom function to set name (default: item.name = x)
+        An item whose new name another item already uses is left as it was,
+        and its result has ``taken`` set. After a rename the name is read
+        back, so the result holds the name actually stored (Blender shortens
+        long names).
 
-        Returns:
-            List of RenameResult objects describing each operation
+        Parameters
+        ----------
+        items : sequence
+            Items to rename.
+        operation : RenameOperation
+            The type of rename operation.
+        config : RenameConfig
+            Configuration for the operation.
+        name_getter : callable, optional
+            Get an item's name (default: ``item.name``).
+        name_setter : callable, optional
+            Set an item's name (default: ``item.name = new_name``).
+        name_taken : callable, optional
+            ``name_taken(item, new_name)`` is True when another item already
+            uses ``new_name`` (default: never).
+
+        Returns
+        -------
+        list of RenameResult
+            One result per item, in the order of ``items``.
         """
         results: list[RenameResult] = []
 
         get_name = name_getter or (lambda x: x.name)
         set_name = name_setter or (lambda x, n: setattr(x, 'name', n))
+        is_taken = name_taken or (lambda x, n: False)
 
         for item in items:
             old_name = get_name(item)
@@ -128,9 +148,12 @@ class RenameEngine:
                 continue
 
             if new_name != old_name:
+                if is_taken(item, new_name):
+                    results.append(RenameResult(old_name, old_name, True, taken=True))
+                    continue
                 try:
                     set_name(item, new_name)
-                    results.append(RenameResult(old_name, new_name, True))
+                    results.append(RenameResult(old_name, get_name(item), True))
                 except Exception as e:
                     results.append(RenameResult(old_name, old_name, False, str(e)))
             else:

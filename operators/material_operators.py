@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING
 import bpy
 from bpy.types import Context, Material
 
-from .base_operator import BaseRenameOperator
+from .base_operator import BaseRenameOperator, id_name_taken
 from ..core.rename_engine import RenameOperation
 
 if TYPE_CHECKING:
@@ -55,6 +55,10 @@ class MaterialRenameOperatorMixin:
     def get_item_type_name(self) -> str:
         """Return item type name."""
         return "material"
+
+    def name_taken(self, context: Context, item: Material, name: str) -> bool:
+        """True when another material already uses ``name``."""
+        return id_name_taken(bpy.data.materials, item, name)
 
 
 class MATERIAL_OT_search_replace(MaterialRenameOperatorMixin, BaseRenameOperator):

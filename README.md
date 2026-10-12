@@ -1,18 +1,18 @@
 # Blender Renamer
 
-**Batch rename bones, materials, and meshes with regex and CSV support**
+**Batch rename bones, materials, meshes, and objects with regex and CSV support**
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/theweapon/blender_renamer)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/theweapon/blender_renamer)
 [![Blender](https://img.shields.io/badge/blender-4.2.0+-orange.svg)](https://www.blender.org/)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
 
-Blender Renamer is a blender addon that provides unified batch renaming functionality for bones, materials, and mesh datablocks.
+Blender Renamer is a blender addon that provides unified batch renaming functionality for bones, materials, mesh datablocks, and objects.
 
 ## Features
 
 ### Core Renaming Operations
 
-All three renamers (Bones, Materials, Meshes) provide:
+All four renamers (Bones, Materials, Meshes, Objects) provide:
 - **Search & Replace**: Find and replace text with optional regex patterns
 - **Add Prefix**: Prepend text to names
 - **Add Suffix**: Append text to names
@@ -33,8 +33,14 @@ All three renamers (Bones, Materials, Meshes) provide:
 - Target: All Materials, Selected Objects, or Active Object
 
 **Mesh Renamer**
+- Renames the mesh data (the green triangle in the Outliner), not the object; for object names use the Object Renamer
 - Unique: Sync Object Names, Include Linked mesh handling
 - Target: All Meshes, Selected Objects, or Active Object
+
+**Object Renamer**
+- Renames objects (the orange triangle in the Outliner)
+- Target: All Objects, Selected Objects, or Active Object
+- Linked (library) objects are skipped, because Blender cannot rename them
 
 **Internationalisation**
 - English
@@ -46,9 +52,9 @@ All three renamers (Bones, Materials, Meshes) provide:
 
 ## Quick Start
 
-1. Select your armature, object, or materials
+1. Select your armature, objects, or materials
 2. Press `N` to open the sidebar → Navigate to **Renamer** tab
-3. Choose your target renamer panel (Bone/Material/Mesh, Bone renaming
+3. Choose your target renamer panel (Bone/Material/Mesh/Object, Bone renaming
    only available in Edit mode   )
 4. Select operation type and configure options
 5. Click the operation button to apply changes
@@ -93,6 +99,14 @@ The parser automatically detects and handles multiple encodings:
 6. Click **Import & Rename**
 
 The addon validates bone existence before renaming and displays a confirmation dialog showing the number of bones to be renamed.
+A bone whose new name another bone already uses is skipped and reported (see [Names already in use](#names-already-in-use)), so a CSV that swaps two names changes neither.
+
+## Names already in use
+
+Blender lets each name exist only once per kind: one object `Body`, one mesh `Body`, one bone `Arm` per armature.
+When a new name is already used by another item of the same kind, the renamer leaves that item as it was and reports
+it, for example `Renamed 2 mesh(s); 1 skipped, name already used: 'Body.001'`. No other item is changed. Rename or
+remove the other item first, then run the rename again.
 
 ### Example Bone CSV File
 

@@ -12,6 +12,58 @@ from ..core.rename_engine import RenameEngine, RenameOperation, RenameConfig, Re
 if TYPE_CHECKING:
     from bpy.types import PropertyGroup
 
+# How many taken names a report lists before "and N more"
+MAX_LISTED_NAMES = 3
+
+
+def skipped_message(item_type: str, changed: int, taken: list[str]) -> str:
+    """
+    Build the report for a rename that skipped names already in use.
+
+    Parameters
+    ----------
+    item_type : str
+        Kind of item, e.g. "mesh".
+    changed : int
+        Number of items renamed.
+    taken : list of str
+        Names of the items left as they were.
+
+    Returns
+    -------
+    str
+        For example "Renamed 2 mesh(s); 1 skipped, name already used: 'Body'".
+    """
+    listed = ", ".join(f"'{name}'" for name in taken[:MAX_LISTED_NAMES])
+    if len(taken) > MAX_LISTED_NAMES:
+        listed += f", and {len(taken) - MAX_LISTED_NAMES} more"
+    return (f"Renamed {changed} {item_type}(s); {len(taken)} skipped, "
+            f"name already used: {listed}")
+
+
+def id_name_taken(collection: Any, item: Any, name: str) -> bool:
+    """
+    Tell whether another data-block of the same kind and library uses a name.
+
+    Parameters
+    ----------
+    collection : bpy.types.bpy_prop_collection
+        The data-blocks of this kind, e.g. ``bpy.data.meshes``.
+    item : bpy.types.ID
+        The data-block about to be renamed.
+    name : str
+        Its new name.
+
+    Returns
+    -------
+    bool
+        True when a different data-block in the same library (or local
+        file) already has ``name``.
+    """
+    library = item.library.filepath if item.library else None
+    other = collection.get((name, library))
+    return other is not None and other != item
+
 
 class BaseRenameOperator(Operator):
     """
@@ -58,6 +110,28 @@ class BaseRenameOperator(Operator):
         """Return the human-readable name for items (e.g., 'bone', 'material')."""
         raise NotImplementedError
 
+    def name_taken(self, context: Context, item: Any, name: str) -> bool:
+        """
+        Tell whether another item already uses a name.
+
+        Override for each kind of item; the base version never finds one.
+
+        Parameters
+        ----------
+        context : bpy.types.Context
+            Current Blender context.
+        item : Any
+            The item about to be renamed.
+        name : str
+            Its new name.
+
+        Returns
+        -------
+        bool
+            True when another item of the same kind already uses ``name``.
+        """
+        return False
+
     def pre_rename_hook(self, context: Context, items: list[Any]) -> None:
         """Called before renaming. Override for setup logic."""
         pass
@@ -98,8 +172,11 @@ class BaseRenameOperator(Operator):
         # Pre-rename hook
         self.pre_rename_hook(context, items)
 
-        # Perform renaming
-        results = RenameEngine.rename_items(items, self.operation, config)
+        # Perform renaming; hooks add the names they could not use here
+        self._taken_names = []
+        results = RenameEngine.rename_items(
+            items, self.operation, config,
+            name_taken=lambda item, name: self.name_taken(context, item, name))
 
         # Post-rename hook
         self.post_rename_hook(context, results)
@@ -107,10 +184,14 @@ class BaseRenameOperator(Operator):
         # Report results
         changed = sum(1 for r in results if r.was_changed)
         errors = [r for r in results if not r.success]
+        taken = [r.old_name for r in results if r.taken] + self._taken_names
 
         if errors:
             self.report({'ERROR'}, f"Errors: {errors[0].error}")
             return {'CANCELLED'}
 
-        self.report({'INFO'}, f"Renamed {changed} {item_type}(s)")
+        if taken:
+            self.report({'WARNING'}, skipped_message(item_type, changed, taken))
+        else:
+            self.report({'INFO'}, f"Renamed {changed} {item_type}(s)")
         return {'FINISHED'}

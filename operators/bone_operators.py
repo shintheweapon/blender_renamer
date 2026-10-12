@@ -7,7 +7,7 @@ import bpy
 from bpy.types import Context, Operator
 from bpy.app.translations import pgettext_iface as _
 
-from .base_operator import BaseRenameOperator
+from .base_operator import BaseRenameOperator, skipped_message
 from ..core.rename_engine import RenameOperation
 
 if TYPE_CHECKING:
@@ -41,6 +41,72 @@ class BoneRenameOperatorMixin:
     def get_item_type_name(self) -> str:
         """Return item type name."""
         return "bone"
+
+    def name_taken(self, context: Context, item: Any, name: str) -> bool:
+        """True when another bone of the armature already uses ``name``."""
+        return bone_name_taken(context.object.data.edit_bones, item, name)
+
+
+def bone_name_taken(edit_bones: Any, bone: Any, name: str) -> bool:
+    """
+    Tell whether another bone of the same armature uses a name.
+
+    Parameters
+    ----------
+    edit_bones : bpy.types.ArmatureEditBones
+        The armature's edit bones.
+    bone : bpy.types.EditBone
+        The bone about to be renamed.
+    name : str
+        Its new name.
+
+    Returns
+    -------
+    bool
+        True when a different bone already has ``name``.
+    """
+    other = edit_bones.get(name)
+    return other is not None and other != bone
+
+
+def apply_mappings(edit_bones: Any, mappings: dict[str, str]) -> tuple[int, list[str], list[str]]:
+    """
+    Rename bones by an old name to new name mapping.
+
+    A bone whose new name another bone already uses is left as it was, so a
+    swap (A to B, B to A) changes nothing.
+
+    Parameters
+    ----------
+    edit_bones : bpy.types.ArmatureEditBones
+        The armature's edit bones.
+    mappings : dict of str to str
+        New name for each old name.
+
+    Returns
+    -------
+    tuple of (int, list of str, list of str)
+        The number of bones renamed, the old names of bones skipped because
+        their new name was taken, and "name (error)" for each failure.
+    """
+    renamed_count = 0
+    taken = []
+    failed_bones = []
+    for bone in list(edit_bones):
+        if bone.name not in mappings:
+            continue
+        new_name = mappings[bone.name]
+        if new_name == bone.name:
+            continue
+        if bone_name_taken(edit_bones, bone, new_name):
+            taken.append(bone.name)
+            continue
+        try:
+            bone.name = new_name
+            renamed_count += 1
+        except Exception as e:
+            failed_bones.append(f"{bone.name} ({str(e)})")
+    return renamed_count, taken, failed_bones
 
 
 class BONE_OT_search_replace(BoneRenameOperatorMixin, BaseRenameOperator):
@@ -179,20 +245,9 @@ class BONE_OT_csv_import(Operator):
             self.report({'ERROR'}, f"Failed to access armature data: {str(e)}")
             return {'CANCELLED'}
 
-        renamed_count = 0
-        failed_count = 0
-        failed_bones = []
-
         # Apply renames using dictionary mapping - catch errors per bone
-        for bone in armature.edit_bones:
-            if bone.name in self._mappings:
-                new_name = self._mappings[bone.name]
-                try:
-                    bone.name = new_name
-                    renamed_count += 1
-                except Exception as e:
-                    failed_count += 1
-                    failed_bones.append(f"{bone.name} ({str(e)})")
+        renamed_count, taken, failed_bones = apply_mappings(armature.edit_bones, self._mappings)
+        failed_count = len(failed_bones)
 
         # Report results with detailed error info
         if failed_count > 0:
@@ -203,6 +258,8 @@ class BONE_OT_csv_import(Operator):
                 {'WARNING'},
                 f"Renamed {renamed_count} bone(s), {failed_count} failed: {error_details}"
             )
+        elif taken:
+            self.report({'WARNING'}, skipped_message("bone", renamed_count, taken))
         else:
             self.report(
                 {'INFO'}, f"Successfully renamed {renamed_count} bone(s) from CSV")

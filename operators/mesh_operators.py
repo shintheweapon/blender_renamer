@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING
 import bpy
 from bpy.types import Context, Mesh, Object
 
-from .base_operator import BaseRenameOperator
+from .base_operator import BaseRenameOperator, id_name_taken
 from ..core.rename_engine import RenameOperation, RenameResult
 
 if TYPE_CHECKING:
@@ -68,8 +68,12 @@ class MeshRenameOperatorMixin:
         """Return item type name."""
         return "mesh"
 
+    def name_taken(self, context: Context, item: Mesh, name: str) -> bool:
+        """True when another mesh already uses ``name``."""
+        return id_name_taken(bpy.data.meshes, item, name)
+
     def post_rename_hook(self, context: Context, results: list[RenameResult]) -> None:
-        """Sync object names if enabled."""
+        """Sync object names if enabled; skip objects whose new name is taken."""
         props = self.get_properties(context)
         if not props.sync_object_names:
             return
@@ -81,7 +85,10 @@ class MeshRenameOperatorMixin:
             # Check if this mesh was renamed
             for old_name, new_name in name_changes.items():
                 if mesh.name == new_name:
-                    obj.name = new_name
+                    if id_name_taken(bpy.data.objects, obj, new_name):
+                        self._taken_names.append(obj.name)
+                    else:
+                        obj.name = new_name
                     break
 
 
