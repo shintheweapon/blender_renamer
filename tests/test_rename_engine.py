@@ -56,5 +56,18 @@ class RenameItemsTests(unittest.TestCase):
         self.assertEqual(results[0].new_name, 'Arm_L')
 
 
+class SearchReplaceTests(unittest.TestCase):
+
+    def test_case_insensitive_replacement_is_plain_text(self):
+        config = RenameConfig(search_text='_L', replace_text='\\1', case_sensitive=False)
+        new_name, error = RenameEngine.compute_new_name('arm_l', RenameOperation.SEARCH_REPLACE, config)
+        self.assertEqual((new_name, error), ('arm\\1', None))
+
+    def test_regex_replacement_keeps_groups(self):
+        config = RenameConfig(search_text='^(.*)_([LR])$', replace_text='\\1.\\2', use_regex=True)
+        new_name, error = RenameEngine.compute_new_name('arm_L', RenameOperation.SEARCH_REPLACE, config)
+        self.assertEqual((new_name, error), ('arm.L', None))
+
+
 if __name__ == '__main__':
     unittest.main()

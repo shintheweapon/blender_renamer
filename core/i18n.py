@@ -17,8 +17,13 @@ def _build_ui_map(translations: dict[str, str]) -> dict[tuple[str, str], str]:
 
 
 def _build_operator_map(translations: dict[str, str]) -> dict[tuple[str, str], str]:
-    """Build Operator context map."""
-    return {("Operator", source): target for source, target in translations.items()}
+    """Build the map for command texts: labels are looked up in the Operator
+    context, tooltips in the default * context, so add both."""
+    mapped: dict[tuple[str, str], str] = {}
+    for source, target in translations.items():
+        mapped[("Operator", source)] = target
+        mapped[("*", source)] = target
+    return mapped
 
 
 _UI_TRANSLATIONS_ZH_CN = {
@@ -50,11 +55,46 @@ _UI_TRANSLATIONS_ZH_CN = {
     "All Materials": "所有材质",
     "All Objects": "所有物体",
     "Include Unused": "包含未使用的",
+    # Option and target-choice tooltips
+    "CSV File": "CSV 文件",
+    "Also rename the parent object to match the mesh name": "同时将物体重命名为与网格相同的名称",
+    "Enable regular expression pattern matching": "启用正则表达式匹配",
+    "Include materials with no users (0 users)": "包含没有用户（0 个用户）的材质",
+    "Make search case-sensitive (only for non-regex)": "搜索时区分大小写（仅用于非正则表达式）",
+    "Path to CSV file with bone rename mappings (Custom_Bones,FS_Bones)": "骨骼重命名映射 CSV 文件的路径（Custom_Bones,FS_Bones）",
+    "Skip confirmation dialog and apply CSV renames immediately": "跳过确认对话框，立即按 CSV 重命名",
+    "Text to replace with": "用于替换的文本",
+    "Text to search for in bone names": "要在骨骼名称中搜索的文本",
+    "Text to add before bone names": "添加在骨骼名称之前的文本",
+    "Text to add after bone names": "添加在骨骼名称之后的文本",
+    "Text to search for in material names": "要在材质名称中搜索的文本",
+    "Text to add before material names": "添加在材质名称之前的文本",
+    "Text to add after material names": "添加在材质名称之后的文本",
+    "Text to search for in mesh names": "要在网格名称中搜索的文本",
+    "Text to add before mesh names": "添加在网格名称之前的文本",
+    "Text to add after mesh names": "添加在网格名称之后的文本",
+    "Text to search for in object names": "要在物体名称中搜索的文本",
+    "Text to add before object names": "添加在物体名称之前的文本",
+    "Text to add after object names": "添加在物体名称之后的文本",
+    "Which bones to rename": "要重命名哪些骨骼",
+    "Which materials to rename": "要重命名哪些材质",
+    "Which objects to rename": "要重命名哪些物体",
+    "Which mesh datablocks to rename": "要重命名哪些网格数据块",
+    "Rename all bones in the armature": "重命名骨架中的所有骨骼",
+    "Rename only selected bones": "只重命名选定的骨骼",
+    "Rename all materials in the file": "重命名文件中的所有材质",
+    "Rename materials on selected objects": "重命名选定物体上的材质",
+    "Rename materials on the active object only": "只重命名活动物体上的材质",
+    "Rename all mesh datablocks in the file": "重命名文件中的所有网格数据块",
+    "Rename meshes of selected objects": "重命名选定物体的网格",
+    "Rename mesh of the active object only": "只重命名活动物体的网格",
+    "Rename all objects in the file": "重命名文件中的所有物体",
+    "Rename selected objects": "重命名选定的物体",
+    "Rename the active object only": "只重命名活动物体",
     "All Bones": "所有骨骼",
     "Selected Bones": "选定的骨骼",
     "Silent Mode": "静默模式（不显示确认提示）",
     "Sync Object Names (mesh is the green delta, object is the orange delta)": "同步物体名称（网格是绿色三角，物体是橙色三角）",
-    "Include Linked": "包含链接的",
 }
 
 _OPERATOR_TRANSLATIONS_ZH_CN = {
@@ -86,7 +126,6 @@ _OPERATOR_TRANSLATIONS_ZH_CN = {
     "All Materials": "所有材质",
     "Include Unused": "包含未使用的",
     "Sync Object Names (mesh is the green delta, object is the orange delta)": "同步物体名称（网格是绿色三角，物体是橙色三角）",
-    "Include Linked": "包含链接的",
 
 }
 
@@ -97,7 +136,6 @@ _zh_hans_translations = {
 
 TRANSLATIONS = {
     "zh_HANS": _zh_hans_translations,
-    "zh_CN": _zh_hans_translations,
 }
 
 

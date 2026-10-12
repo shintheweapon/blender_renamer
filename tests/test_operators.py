@@ -6,7 +6,30 @@ import unittest
 
 import bpy
 
+from blender_renamer.core.rename_engine import RenameResult
 from blender_renamer.operators import base_operator, bone_operators
+
+
+def linked_from_library(materials=(), meshes=()):
+    """
+    Write materials and meshes to a library file, start a new scene, and link them back.
+
+    Returns
+    -------
+    None
+        The linked data is in ``bpy.data`` under the same names.
+    """
+    for name in materials:
+        bpy.data.materials.new(name).use_fake_user = True
+    for name in meshes:
+        bpy.data.meshes.new(name).use_fake_user = True
+    path = os.path.join(tempfile.mkdtemp(), 'lib.blend')
+    data = {bpy.data.materials[n] for n in materials} | {bpy.data.meshes[n] for n in meshes}
+    bpy.data.libraries.write(path, data)
+    new_scene()
+    with bpy.data.libraries.load(path, link=True) as (source, target):
+        target.materials = list(materials)
+        target.meshes = list(meshes)
 
 
 def new_scene():
@@ -217,6 +240,93 @@ class SkippedMessageTests(unittest.TestCase):
     def test_one_name(self):
         self.assertEqual(base_operator.skipped_message('bone', 0, ['Arm']),
                          "Renamed 0 bone(s); 1 skipped, name already used: 'Arm'")
+
+
+class SyncAllMeshesTests(unittest.TestCase):
+
+    def test_sync_with_all_meshes_renames_the_object(self):
+        new_scene()
+        props = bpy.context.scene.mesh_renamer_props
+        remove_001(props)
+        props.target_meshes = 'ALL'
+        props.sync_object_names = True
+        obj = mesh_object('Body.001', 'Body.001')
+        bpy.ops.mesh.search_replace()
+        self.assertEqual((obj.name, obj.data.name), ('Body', 'Body'))
+
+
+class LinkedDataTests(unittest.TestCase):
+
+    def test_all_materials_skip_linked_and_keep_local_renames(self):
+        new_scene()
+        linked_from_library(materials=['LibSkin'])
+        bpy.data.materials.new('Skin').use_fake_user = True
+        props = bpy.context.scene.material_renamer_props
+        props.target_materials = 'ALL'
+        props.include_unused = True
+        props.prefix_text = 'X_'
+        self.assertEqual(bpy.ops.material.add_prefix(), {'FINISHED'})
+        self.assertEqual(sorted(m.name for m in bpy.data.materials), ['LibSkin', 'X_Skin'])
+
+    def test_all_meshes_skip_linked(self):
+        new_scene()
+        linked_from_library(meshes=['LibMesh'])
+        bpy.data.meshes.new('Mesh')
+        props = bpy.context.scene.mesh_renamer_props
+        props.target_meshes = 'ALL'
+        props.sync_object_names = False
+        props.prefix_text = 'X_'
+        self.assertEqual(bpy.ops.mesh.add_prefix(), {'FINISHED'})
+        self.assertEqual(sorted(m.name for m in bpy.data.meshes), ['LibMesh', 'X_Mesh'])
+
+
+class ReportOutcomeTests(unittest.TestCase):
+
+    def test_errors_after_changes_finish_so_undo_works(self):
+        results = [RenameResult('A', 'X_A', True), RenameResult('B', 'B', False, 'read-only')]
+        level, message, outcome = base_operator.report_outcome('mesh', results, [])
+        self.assertEqual((level, outcome), ('WARNING', {'FINISHED'}))
+        self.assertIn('read-only', message)
+
+    def test_errors_without_changes_cancel(self):
+        results = [RenameResult('B', 'B', False, 'read-only')]
+        level, message, outcome = base_operator.report_outcome('mesh', results, [])
+        self.assertEqual((level, outcome), ('ERROR', {'CANCELLED'}))
+
+    def test_taken_names_warn(self):
+        results = [RenameResult('A', 'X_A', True), RenameResult('B', 'B', True, taken=True)]
+        level, message, outcome = base_operator.report_outcome('mesh', results, [])
+        self.assertEqual((level, message, outcome),
+                         ('WARNING', "Renamed 1 mesh(s); 1 skipped, name already used: 'B'", {'FINISHED'}))
+
+    def test_plain_success(self):
+        results = [RenameResult('A', 'X_A', True)]
+        self.assertEqual(base_operator.report_outcome('mesh', results, []),
+                         ('INFO', 'Renamed 1 mesh(s)', {'FINISHED'}))
+
+
+class LoadMappingsTests(unittest.TestCase):
+
+    def setUp(self):
+        BoneTakenNameTests.setUp(self)
+
+    def tearDown(self):
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    def test_valid_csv_gives_the_matching_pairs(self):
+        bone = self.obj.data.edit_bones.new('Hand')
+        bone.tail = (0, 0, 1)
+        path = os.path.join(tempfile.mkdtemp(), 'map.csv')
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write('Custom_Bones,FS_Bones\nHand,L_Hand\nFoot,L_Foot\n')
+        mappings, level, message = bone_operators.load_mappings(path, self.obj.data.edit_bones)
+        self.assertEqual((mappings, level), ({'Hand': 'L_Hand'}, None))
+
+    def test_missing_file_gives_an_error(self):
+        mappings, level, message = bone_operators.load_mappings(
+            os.path.join(tempfile.mkdtemp(), 'none.csv'), self.obj.data.edit_bones)
+        self.assertEqual((mappings, level), (None, 'ERROR'))
+        self.assertIn('File not found', message)
 
 
 if __name__ == '__main__':

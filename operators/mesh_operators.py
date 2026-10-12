@@ -34,23 +34,26 @@ class MeshRenameOperatorMixin:
         """Get meshes to rename based on target selection."""
         meshes: set[Mesh] = set()
         target = properties.target_meshes
-        include_linked = properties.include_linked
 
         # Clear pairs for sync feature
         self._object_mesh_pairs = []
 
         def add_mesh(obj: Object, mesh: Mesh) -> None:
-            """Add mesh to set and track object pair if syncing."""
-            if not include_linked and mesh.library:
+            """Add mesh to set and track object pair if syncing; linked data cannot be renamed."""
+            if mesh.library:
                 return
             if mesh not in meshes:
                 meshes.add(mesh)
-                if properties.sync_object_names:
+                if properties.sync_object_names and not obj.library:
                     self._object_mesh_pairs.append((obj, mesh))
 
         if target == 'ALL':
+            # Objects first, so Sync Object Names knows an object for each mesh
+            for obj in bpy.data.objects:
+                if obj.type == 'MESH' and obj.data:
+                    add_mesh(obj, obj.data)
             for mesh in bpy.data.meshes:
-                if include_linked or not mesh.library:
+                if not mesh.library:
                     meshes.add(mesh)
 
         elif target == 'SELECTED':

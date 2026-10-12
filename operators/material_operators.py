@@ -50,7 +50,8 @@ class MaterialRenameOperatorMixin:
                     if slot.material:
                         materials.add(slot.material)
 
-        return list(materials)
+        # Linked (library) materials cannot be renamed
+        return [mat for mat in materials if not mat.library]
 
     def get_item_type_name(self) -> str:
         """Return item type name."""

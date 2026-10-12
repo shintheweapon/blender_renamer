@@ -65,12 +65,6 @@ class MeshRenamerProperties(BaseRenamerProperties):
         default=False
     )
 
-    include_linked: BoolProperty(
-        name="Include Linked",
-        description="Include linked/library meshes (will show warning if read-only)",
-        default=False
-    )
-
 
 def register() -> None:
     """Register mesh renamer properties."""

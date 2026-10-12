@@ -2,9 +2,9 @@
 
 **Batch rename bones, materials, meshes, and objects with regex and CSV support**
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/theweapon/blender_renamer)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/shintheweapon/blender_renamer)
 [![Blender](https://img.shields.io/badge/blender-4.2.0+-orange.svg)](https://www.blender.org/)
-[![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE.txt)
 
 Blender Renamer is a blender addon that provides unified batch renaming functionality for bones, materials, mesh datablocks, and objects.
 
@@ -24,8 +24,8 @@ All four renamers (Bones, Materials, Meshes, Objects) provide:
 
 **Bone Renamer**
 - Unique feature: CSV bulk import for mapping files (Custom_Bones →
-  FS_Bones) with optional slient mode
-- Target: All Bones or Selected Bones (for none CSV rename)
+  FS_Bones) with optional silent mode
+- Target: All Bones or Selected Bones (for non-CSV rename)
 - Requirements: Armature in Edit Mode
 
 **Material Renamer**
@@ -34,7 +34,8 @@ All four renamers (Bones, Materials, Meshes, Objects) provide:
 
 **Mesh Renamer**
 - Renames the mesh data (the green triangle in the Outliner), not the object; for object names use the Object Renamer
-- Unique: Sync Object Names, Include Linked mesh handling
+- Unique: Sync Object Names
+- Linked (library) meshes are skipped, because Blender cannot rename them
 - Target: All Meshes, Selected Objects, or Active Object
 
 **Object Renamer**
@@ -48,7 +49,7 @@ All four renamers (Bones, Materials, Meshes, Objects) provide:
 
 ## Requirements
 
-- **Blender Version**: Recommend 4.2.0 or later (legacy support for 3.0.0+)
+- **Blender Version**: Blender 4.2 or later (tested with 4.5)
 
 ## Quick Start
 
@@ -110,7 +111,7 @@ remove the other item first, then run the rename again.
 
 ### Example Bone CSV File
 
-See [example_bone_dict.csv](example_bone_dict.csv) for an example reference with 85 bone mappings.
+See [example_bone_dict.csv](example_bone_dict.csv) for an example reference with 83 bone mappings.
 
 ## Regex Patterns
 
