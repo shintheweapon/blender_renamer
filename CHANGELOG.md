@@ -7,18 +7,29 @@
   All Objects, Selected Objects or Active Object. Linked (library) objects are skipped. The Mesh Renamer renames mesh
   data (the green triangle) only.
 - Chinese uses 物体 for Object, as Blender does; the Sync Object Names label now says 同步物体名称.
+- Tests, run inside Blender: `blender.exe --factory-startup -b -P tests/run_tests.py`.
+- The extension build leaves out `tests/` and `.gitignore`.
+
+### Removed
+- The Mesh Renamer's **Include Linked** option. Blender cannot rename linked (library) meshes, so the option could
+  only cause errors; linked meshes are always skipped.
 
 ### Fixed
+- Sync Object Names did nothing with Target All Meshes; it now renames the object of each mesh, as with Selected and
+  Active.
+- Case-insensitive Search & Replace read the Replace text as a regular expression template, so a backslash in it
+  failed (for example `\1`). The Replace text is now used as it is.
+- All Materials renamed the local materials, then stopped with an error at a linked material and left no undo step.
+  Linked materials are now skipped. When some items are renamed and others fail, the command still finishes, so
+  Ctrl+Z undoes the renames.
+- CSV import reads the CSV again when it runs without the pairs from its first step, as a repeated command (Repeat
+  Last) does. Before, it could only report "No mappings available".
 - A new name already used by another item of the same kind (object, mesh, material, or a bone of the same armature)
   no longer gets Blender's number added. The item is left as it was, and the report lists the names skipped. Before,
   for example, removing `.001` while `Body` existed left `Body.001` and still reported it as renamed.
 - Sync Object Names skips an object whose new name another object uses, and reports it.
 - CSV import skips a bone whose new name another bone uses, so a CSV that swaps two names changes neither. Before, a
   swap gave names such as `Spine.001`.
-
-### Added
-- Tests, run inside Blender: `blender.exe --factory-startup -b -P tests/run_tests.py`.
-- The extension build leaves out `tests/` and `.gitignore`.
 
 ## 0.1.0
 

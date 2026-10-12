@@ -41,6 +41,44 @@ def skipped_message(item_type: str, changed: int, taken: list[str]) -> str:
             f"name already used: {listed}")
 
 
+def report_outcome(item_type: str, results: list[RenameResult],
+                   extra_taken: list[str]) -> tuple[str, str, set[str]]:
+    """
+    Choose the report and the operator result after a rename.
+
+    An operator that renamed something must finish, so that Blender adds an
+    undo step for it, even when other items failed.
+
+    Parameters
+    ----------
+    item_type : str
+        Kind of item, e.g. "mesh".
+    results : list of RenameResult
+        One result per item.
+    extra_taken : list of str
+        Further names left as they were because their new name was taken
+        (for example objects in Sync Object Names).
+
+    Returns
+    -------
+    tuple of (str, str, set of str)
+        The report level ('INFO', 'WARNING' or 'ERROR'), the message, and
+        ``{'FINISHED'}`` or ``{'CANCELLED'}``.
+    """
+    changed = sum(1 for r in results if r.was_changed)
+    errors = [r for r in results if not r.success]
+    taken = [r.old_name for r in results if r.taken] + list(extra_taken)
+
+    if errors:
+        message = f"Errors: {errors[0].error}"
+        if changed:
+            return 'WARNING', f"Renamed {changed} {item_type}(s); {message}", {'FINISHED'}
+        return 'ERROR', message, {'CANCELLED'}
+    if taken:
+        return 'WARNING', skipped_message(item_type, changed, taken), {'FINISHED'}
+    return 'INFO', f"Renamed {changed} {item_type}(s)", {'FINISHED'}
+
+
 def id_name_taken(collection: Any, item: Any, name: str) -> bool:
     """
     Tell whether another data-block of the same kind and library uses a name.
@@ -182,16 +220,6 @@ class BaseRenameOperator(Operator):
         self.post_rename_hook(context, results)
 
         # Report results
-        changed = sum(1 for r in results if r.was_changed)
-        errors = [r for r in results if not r.success]
-        taken = [r.old_name for r in results if r.taken] + self._taken_names
-
-        if errors:
-            self.report({'ERROR'}, f"Errors: {errors[0].error}")
-            return {'CANCELLED'}
-
-        if taken:
-            self.report({'WARNING'}, skipped_message(item_type, changed, taken))
-        else:
-            self.report({'INFO'}, f"Renamed {changed} {item_type}(s)")
-        return {'FINISHED'}
+        level, message, outcome = report_outcome(item_type, results, self._taken_names)
+        self.report({level}, message)
+        return outcome

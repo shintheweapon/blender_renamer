@@ -34,7 +34,6 @@ class VIEW3D_PT_mesh_renamer(BaseRenamerPanel):
         box = layout.box()
         box.label(text=_("Options:"), icon='SETTINGS')
         box.prop(props, "sync_object_names")
-        box.prop(props, "include_linked")
 
         # Search & Replace section
         self.draw_search_replace_section(

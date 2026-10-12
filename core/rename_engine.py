@@ -90,9 +90,10 @@ class RenameEngine:
         elif config.case_sensitive:
             return name.replace(config.search_text, config.replace_text)
         else:
-            # Case-insensitive replacement
+            # Case-insensitive replacement; a function keeps the replacement
+            # plain text (no \1 groups or backslash escapes)
             pattern = re.compile(re.escape(config.search_text), re.IGNORECASE)
-            return pattern.sub(config.replace_text, name)
+            return pattern.sub(lambda match: config.replace_text, name)
 
     @classmethod
     def rename_items(

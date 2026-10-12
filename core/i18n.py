@@ -54,7 +54,6 @@ _UI_TRANSLATIONS_ZH_CN = {
     "Selected Bones": "选定的骨骼",
     "Silent Mode": "静默模式（不显示确认提示）",
     "Sync Object Names (mesh is the green delta, object is the orange delta)": "同步物体名称（网格是绿色三角，物体是橙色三角）",
-    "Include Linked": "包含链接的",
 }
 
 _OPERATOR_TRANSLATIONS_ZH_CN = {
@@ -86,7 +85,6 @@ _OPERATOR_TRANSLATIONS_ZH_CN = {
     "All Materials": "所有材质",
     "Include Unused": "包含未使用的",
     "Sync Object Names (mesh is the green delta, object is the orange delta)": "同步物体名称（网格是绿色三角，物体是橙色三角）",
-    "Include Linked": "包含链接的",
 
 }
 

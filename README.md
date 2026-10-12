@@ -34,7 +34,8 @@ All four renamers (Bones, Materials, Meshes, Objects) provide:
 
 **Mesh Renamer**
 - Renames the mesh data (the green triangle in the Outliner), not the object; for object names use the Object Renamer
-- Unique: Sync Object Names, Include Linked mesh handling
+- Unique: Sync Object Names
+- Linked (library) meshes are skipped, because Blender cannot rename them
 - Target: All Meshes, Selected Objects, or Active Object
 
 **Object Renamer**

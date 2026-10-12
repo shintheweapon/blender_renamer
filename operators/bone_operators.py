@@ -69,6 +69,52 @@ def bone_name_taken(edit_bones: Any, bone: Any, name: str) -> bool:
     return other is not None and other != bone
 
 
+def load_mappings(csv_path: str, edit_bones: Any) -> tuple[dict[str, str] | None, str | None, str | None]:
+    """
+    Read a CSV of bone renames and keep the pairs whose old name is a bone.
+
+    Parameters
+    ----------
+    csv_path : str
+        Path of the CSV file (Custom_Bones,FS_Bones with a header row).
+    edit_bones : bpy.types.ArmatureEditBones
+        The armature's edit bones.
+
+    Returns
+    -------
+    tuple of (dict or None, str or None, str or None)
+        The pairs to apply with None, None; or None with a report level
+        ('ERROR' or 'WARNING') and a message saying why there are none.
+    """
+    from ..core.csv_parser import CSVParser
+
+    if not csv_path:
+        return None, 'ERROR', "No CSV file selected"
+
+    # Parse CSV file - ALL errors are caught and reported to user
+    try:
+        parse_result = CSVParser.parse_file(csv_path)
+    except Exception as e:
+        # Catch any unexpected errors not handled by CSVParser
+        return None, 'ERROR', f"Unexpected error reading CSV: {str(e)}"
+
+    if not parse_result.is_valid:
+        # CSVParser returns user-friendly error messages
+        return None, 'ERROR', parse_result.error
+
+    if parse_result.mapping_count == 0:
+        return None, 'WARNING', "CSV file contains no valid mappings"
+
+    # Filter mappings to only bones that exist
+    bone_names = {bone.name for bone in edit_bones}
+    valid_mappings, not_found = CSVParser.validate_mappings(parse_result.mappings, bone_names)
+
+    if not valid_mappings:
+        return None, 'WARNING', f"No bones match CSV entries ({not_found} entries not found in armature)"
+
+    return valid_mappings, None, None
+
+
 def apply_mappings(edit_bones: Any, mappings: dict[str, str]) -> tuple[int, list[str], list[str]]:
     """
     Rename bones by an old name to new name mapping.
@@ -164,47 +210,11 @@ class BONE_OT_csv_import(Operator):
 
     def invoke(self, context: Context, event) -> set[str]:
         """Parse CSV, validate, and show confirmation dialog (unless silent mode)."""
-        from ..core.csv_parser import CSVParser
-
         props = context.scene.bone_renamer_props
-
-        # Validate file path
-        if not props.csv_file_path:
-            self.report({'ERROR'}, "No CSV file selected")
-            return {'CANCELLED'}
-
-        # Parse CSV file - ALL errors are caught and reported to user
-        try:
-            parse_result = CSVParser.parse_file(props.csv_file_path)
-        except Exception as e:
-            # Catch any unexpected errors not handled by CSVParser
-            self.report({'ERROR'}, f"Unexpected error reading CSV: {str(e)}")
-            return {'CANCELLED'}
-
-        if not parse_result.is_valid:
-            # CSVParser returns user-friendly error messages
-            self.report({'ERROR'}, parse_result.error)
-            return {'CANCELLED'}
-
-        if parse_result.mapping_count == 0:
-            self.report({'WARNING'}, "CSV file contains no valid mappings")
-            return {'CANCELLED'}
-
-        # Get existing bone names
-        armature = context.object.data
-        bone_names = {bone.name for bone in armature.edit_bones}
-
-        # Filter mappings to only bones that exist
-        valid_mappings, not_found = CSVParser.validate_mappings(
-            parse_result.mappings,
-            bone_names
-        )
-
-        if not valid_mappings:
-            self.report(
-                {'WARNING'},
-                f"No bones match CSV entries ({not_found} entries not found in armature)"
-            )
+        valid_mappings, level, message = load_mappings(
+            props.csv_file_path, context.object.data.edit_bones)
+        if valid_mappings is None:
+            self.report({level}, message)
             return {'CANCELLED'}
 
         # Store mappings for execute()
@@ -236,8 +246,13 @@ class BONE_OT_csv_import(Operator):
         """Apply bone renames based on CSV mappings. All errors caught and reported."""
         self._in_dialog = False
         if not self._mappings:
-            self.report({'ERROR'}, "No mappings available")
-            return {'CANCELLED'}
+            # A repeated run (Repeat Last) has no pairs from invoke(); read the CSV again
+            mappings, level, message = load_mappings(
+                context.scene.bone_renamer_props.csv_file_path, context.object.data.edit_bones)
+            if mappings is None:
+                self.report({level}, message)
+                return {'CANCELLED'}
+            self._mappings = mappings
 
         try:
             armature = context.object.data
