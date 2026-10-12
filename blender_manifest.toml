@@ -1,9 +1,9 @@
 schema_version = "1.0.0"
 
 id = "blender_renamer"
-version = "0.1.0"
+version = "0.2.0"
 name = "Blender Renamer"
-tagline = "Batch rename bones, materials, and meshes with regex support"
+tagline = "Batch rename bones, materials, meshes and objects, with regex"
 maintainer = "theweapon"
 type = "add-on"
 

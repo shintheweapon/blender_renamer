@@ -1,6 +1,7 @@
 # Tests for the rename operators in Blender: names already in use
 
 import os
+import tempfile
 import unittest
 
 import bpy
@@ -150,6 +151,60 @@ class BoneTakenNameTests(unittest.TestCase):
             self.obj.data.edit_bones, {'Hand': 'L_Hand'})
         self.assertEqual(self.names(), ['L_Hand'])
         self.assertEqual((renamed, taken, failed), (1, [], []))
+
+
+class ObjectRenamerTests(unittest.TestCase):
+
+    def setUp(self):
+        new_scene()
+        props = bpy.context.scene.object_renamer_props
+        remove_001(props)
+        props.target_objects = 'SELECTED'
+
+    def test_selected_object_name_changes_and_its_mesh_does_not(self):
+        obj = mesh_object('Body.001', 'Mesh.003')
+        select_only(obj)
+        self.assertEqual(bpy.ops.object.search_replace(), {'FINISHED'})
+        self.assertEqual((obj.name, obj.data.name), ('Body', 'Mesh.003'))
+
+    def test_taken_name_leaves_the_object(self):
+        mesh_object('X_Body', 'Other')
+        obj = mesh_object('Body', 'Body')
+        select_only(obj)
+        bpy.context.scene.object_renamer_props.prefix_text = 'X_'
+        self.assertEqual(bpy.ops.object.add_prefix(), {'FINISHED'})
+        self.assertEqual(obj.name, 'Body')
+
+    def test_all_renames_every_object(self):
+        bpy.context.scene.object_renamer_props.target_objects = 'ALL'
+        first = mesh_object('Arm.001', 'Arm.001')
+        second = mesh_object('Leg.001', 'Leg.001')
+        bpy.ops.object.search_replace()
+        self.assertEqual((first.name, second.name), ('Arm', 'Leg'))
+
+    def test_suffix_and_both(self):
+        props = bpy.context.scene.object_renamer_props
+        props.prefix_text = 'L_'
+        props.suffix_text = '_fs'
+        obj = mesh_object('Hand', 'Hand')
+        select_only(obj)
+        bpy.ops.object.add_suffix()
+        self.assertEqual(obj.name, 'Hand_fs')
+        bpy.ops.object.add_prefix_suffix()
+        self.assertEqual(obj.name, 'L_Hand_fs_fs')
+
+    def test_linked_objects_are_skipped(self):
+        mesh_object('LibBody.001', 'LibMesh')
+        path = os.path.join(tempfile.mkdtemp(), 'lib.blend')
+        bpy.data.libraries.write(path, {bpy.data.objects['LibBody.001']})
+        new_scene()
+        with bpy.data.libraries.load(path, link=True) as (source, target):
+            target.objects = ['LibBody.001']
+        linked = bpy.data.objects['LibBody.001']
+        bpy.context.scene.collection.objects.link(linked)
+        bpy.context.scene.object_renamer_props.target_objects = 'ALL'
+        self.assertEqual(bpy.ops.object.search_replace(), {'CANCELLED'})
+        self.assertEqual(linked.name, 'LibBody.001')
 
 
 class SkippedMessageTests(unittest.TestCase):

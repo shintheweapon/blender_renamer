@@ -2,6 +2,12 @@
 
 ## 0.2.0 (unreleased)
 
+### Added
+- **Object Renamer** panel: the same operations for object names (the orange triangle in the Outliner), with Target
+  All Objects, Selected Objects or Active Object. Linked (library) objects are skipped. The Mesh Renamer renames mesh
+  data (the green triangle) only.
+- Chinese uses 物体 for Object, as Blender does; the Sync Object Names label now says 同步物体名称.
+
 ### Fixed
 - A new name already used by another item of the same kind (object, mesh, material, or a bone of the same armature)
   no longer gets Blender's number added. The item is left as it was, and the report lists the names skipped. Before,
