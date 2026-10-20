@@ -15,13 +15,3 @@ license = ["SPDX:GPL-3.0-or-later"]
 
 # Categories
 tags = ["Rigging", "Object", "Material"]
-
-# Files left out of the extension zip
-[build]
-paths_exclude_pattern = [
-  "__pycache__/",
-  "/.git/",
-  "/.gitignore",
-  "/*.zip",
-  "/tests/",
-]
