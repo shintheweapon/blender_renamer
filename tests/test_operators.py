@@ -6,8 +6,8 @@ import unittest
 
 import bpy
 
-from blender_renamer.core.rename_engine import RenameResult
-from blender_renamer.operators import base_operator, bone_operators
+from src.core.rename_engine import RenameResult
+from src.operators import base_operator, bone_operators
 
 
 def linked_from_library(materials=(), meshes=()):

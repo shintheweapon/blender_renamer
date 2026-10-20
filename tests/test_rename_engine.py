@@ -2,7 +2,7 @@
 
 import unittest
 
-from blender_renamer.core.rename_engine import RenameConfig, RenameEngine, RenameOperation
+from src.core.rename_engine import RenameConfig, RenameEngine, RenameOperation
 
 
 class Item:

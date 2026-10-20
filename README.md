@@ -51,6 +51,39 @@ All four renamers (Bones, Materials, Meshes, Objects) provide:
 
 - **Blender Version**: Blender 4.2 or later (tested with 4.5)
 
+## Install
+
+1. Download `blender_renamer-<version>.zip` from the GitHub releases, or build it (see [Build](#build)).
+2. In Blender: **Edit > Preferences > Get Extensions**, open the menu at the top right, choose **Install from Disk**
+   and pick the zip.
+
+## Develop
+
+The add-on's files are in `src/`:
+- `core/`: the renaming engine and CSV parsing (plain Python), and the Simplified Chinese table;
+- `operators/`: the rename commands for each kind of item;
+- `properties/`: the panel options;
+- `ui/`: the sidebar panels;
+- `__init__.py`: registration.
+
+### Test
+
+```
+blender.exe --factory-startup -b -P tests\run_tests.py
+```
+
+`--factory-startup` keeps an installed copy of the add-on from loading. The runner sets the interface language to
+English for the run, because the tests check English texts.
+
+### Build
+
+```
+.\build.ps1
+```
+
+It runs Blender's extension build on `src` and writes `dist\blender_renamer-<version>.zip`, then checks the zip's
+layout. Pass `-Blender "<path to blender.exe>"` when Blender is elsewhere.
+
 ## Quick Start
 
 1. Select your armature, objects, or materials
