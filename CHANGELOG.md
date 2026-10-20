@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- The add-on's files are in `src/`; `build.ps1` builds `dist/blender_renamer-<version>.zip` and checks its layout.
+  The zip holds only the add-on: the README, changelog, licence text and example CSV stay in the repository.
+
 ## 0.2.0
 
 ### Added
