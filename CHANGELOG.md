@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0
 
 ### Added
 - **Object Renamer** panel: the same operations for object names (the orange triangle in the Outliner), with Target
