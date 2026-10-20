@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Changed
-- The add-on's files are in `src/`; `build.ps1` builds `dist/blender_renamer-<version>.zip` and checks its layout.
-  The zip holds only the add-on: the README, changelog, licence text and example CSV stay in the repository.
-
 ## 0.2.0
 
 ### Added
@@ -14,7 +8,8 @@
   data (the green triangle) only.
 - Chinese uses 物体 for Object, as Blender does; the Sync Object Names label now says 同步物体名称.
 - Tests, run inside Blender: `blender.exe --factory-startup -b -P tests/run_tests.py`.
-- The extension build leaves out `tests/` and `.gitignore`.
+- The add-on's files are in `src/`; `build.ps1` builds `dist/blender_renamer-<version>.zip` and checks its layout.
+  The zip holds only the add-on: the README, changelog, licence text and example CSV stay in the repository.
 
 ### Changed
 - The add-on reloads its modules only when Blender refreshes it, not on the first load.
