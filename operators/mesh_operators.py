@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING
 import bpy
 from bpy.types import Context, Mesh, Object
 
-from .base_operator import BaseRenameOperator
+from .base_operator import BaseRenameOperator, id_name_taken
 from ..core.rename_engine import RenameOperation, RenameResult
 
 if TYPE_CHECKING:
@@ -34,23 +34,26 @@ class MeshRenameOperatorMixin:
         """Get meshes to rename based on target selection."""
         meshes: set[Mesh] = set()
         target = properties.target_meshes
-        include_linked = properties.include_linked
 
         # Clear pairs for sync feature
         self._object_mesh_pairs = []
 
         def add_mesh(obj: Object, mesh: Mesh) -> None:
-            """Add mesh to set and track object pair if syncing."""
-            if not include_linked and mesh.library:
+            """Add mesh to set and track object pair if syncing; linked data cannot be renamed."""
+            if mesh.library:
                 return
             if mesh not in meshes:
                 meshes.add(mesh)
-                if properties.sync_object_names:
+                if properties.sync_object_names and not obj.library:
                     self._object_mesh_pairs.append((obj, mesh))
 
         if target == 'ALL':
+            # Objects first, so Sync Object Names knows an object for each mesh
+            for obj in bpy.data.objects:
+                if obj.type == 'MESH' and obj.data:
+                    add_mesh(obj, obj.data)
             for mesh in bpy.data.meshes:
-                if include_linked or not mesh.library:
+                if not mesh.library:
                     meshes.add(mesh)
 
         elif target == 'SELECTED':
@@ -68,8 +71,12 @@ class MeshRenameOperatorMixin:
         """Return item type name."""
         return "mesh"
 
+    def name_taken(self, context: Context, item: Mesh, name: str) -> bool:
+        """True when another mesh already uses ``name``."""
+        return id_name_taken(bpy.data.meshes, item, name)
+
     def post_rename_hook(self, context: Context, results: list[RenameResult]) -> None:
-        """Sync object names if enabled."""
+        """Sync object names if enabled; skip objects whose new name is taken."""
         props = self.get_properties(context)
         if not props.sync_object_names:
             return
@@ -81,7 +88,10 @@ class MeshRenameOperatorMixin:
             # Check if this mesh was renamed
             for old_name, new_name in name_changes.items():
                 if mesh.name == new_name:
-                    obj.name = new_name
+                    if id_name_taken(bpy.data.objects, obj, new_name):
+                        self._taken_names.append(obj.name)
+                    else:
+                        obj.name = new_name
                     break
 
 
